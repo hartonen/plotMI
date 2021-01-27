@@ -50,7 +50,7 @@ def plotMI():
     start = time()
     #calculate single site frequencies of k-mers in parallel
     pool = mp.Pool(args.nproc)
-    res = [pool.apply_async(getP_j,args=(seqs,j,I,J,args.k,args.p)) for j in range(0,J-args.k)]
+    res = [pool.apply_async(getP_j,args=(seqs,j,I,J,args.k,args.p)) for j in range(0,J-args.k+1)]
     P = [r.get() for r in res] #list containing the single site k-mer frequencies. Each distribution is saved as a dictionary where k-mer is key and its frequency is value
     
     #print(P[0])
@@ -68,10 +68,10 @@ def plotMI():
     res = []
     
     M = 0 #number of pairwise k-mer distributions
-    for m in range(0,J-2*args.k):
+    for m in range(0,J-2*args.k+1):
         M += 1
         #overlapping_inds = set([l for l in range(m-args.k,m+args.k)])
-        for n in range(m+args.k,J-args.k):
+        for n in range(m+args.k,J-args.k+1):
             #if n in overlapping_inds: continue
             #print("m="+str(m)+", n="+str(n))
             res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,args.p)))
