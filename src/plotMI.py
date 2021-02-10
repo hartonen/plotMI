@@ -105,8 +105,6 @@ def plotMI():
     sns_plot.set_yticks(yticks)
     sns.despine(offset=10, trim=True)
     fig = sns_plot.get_figure()
-    #fig.set_xlabel('position')
-    #fig.set_ylabel('position')
     fig.savefig(args.outdir+"MI."+args.figtype,dpi=150)
     
     end = time()
