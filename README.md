@@ -1,4 +1,4 @@
-#PlotMI
+# PlotMI
 
 PlotMI is a program for visualization of pairwise interactions in a set of input sequences by computing the pairwise mutual information between positional k-mer distributions. Description of the method is in manuscript:
 
@@ -21,3 +21,7 @@ Then one needs to install all the required packages. These are listed in `data/p
 and install the packages with pip:
 
 `pip install -r data/plotMI_requirements.txt`
+
+## 2. Usage example
+
+Sequences in file `data/` can be used to re-create Figure 1b of the plotMI manuscript by typing: 
