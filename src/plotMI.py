@@ -32,6 +32,7 @@ def plotMI():
     parser.add_argument("--v",help="Verbosity level, 0=none, 1=print info on screen (default=1).",type=int,choices=[0,1],default=1)
     parser.add_argument("--p",help="Multiplier for pseudocount mass added to k-mer count. Total pseudocount mass added is p*(number of sequences) (default=5).",type=int,default=5)
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
+    parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     args = parser.parse_args()
     
     #read in the sequences and store them as strings
@@ -100,7 +101,8 @@ def plotMI():
     mask = np.zeros_like(MI)
     mask[MI<0] = True
 
-    sns_plot = sns.heatmap(MI,cmap='jet',cbar=True,cbar_kws={'label': 'MI'},xticklabels=xticks,yticklabels=yticks,mask=mask,vmin=0)
+    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='jet',cbar=True,cbar_kws={'label': 'MI'},xticklabels=xticks,yticklabels=yticks,mask=mask,vmin=args.minmi)
+    else: sns_plot = sns.heatmap(MI,cmap='jet',cbar=True,cbar_kws={'label': 'MI'},xticklabels=xticks,yticklabels=yticks,mask=mask)
     sns_plot.set_xticks([i-args.k for i in xticks])
     sns_plot.set_yticks(yticks)
     sns.despine(offset=10, trim=True)
