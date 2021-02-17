@@ -10,7 +10,7 @@ All scripts are pure Python, so no compiling is needed. Easiest way is to clone 
 
 `git clone https://github.com/hartonen/plotMI.git`
 
-The scripts in this repository need specific Python packages to function properly. The easiest way to make sure everything works is to  [https://docs.python.org/3/library/venv.html#module-venv](create a virtual environment) containing the tested versions of each package and then run the scripts in this environment. This is done by first creating a new virtual environment:
+The scripts in this repository need specific Python packages to function properly. The easiest way to make sure everything works is to create a cirtual environment [https://docs.python.org/3/library/venv.html#module-venv] containing the tested versions of each package and then run the scripts in this environment. This is done by first creating a new virtual environment:
 
 `python3 -m venv /path/to/new/virtual/environment`
 
