@@ -86,13 +86,15 @@ def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #calculate mutual information
     #MI(m,n) = \sum_{kmer_m \in K} \sum_{kmer_n in K} P_mn(kmer_m,kmer_n)*log_2(P_mn(kmer_m,kmer_n)/(P_m(kmer_m)*P_n(kmer_n)))
     #where K is the set of all observed k-mers at positions m and n
-    MI_mn = 0.0
+    MI = 0.0
+    MI_mn = {} #dictionary containing all individual contributions to MI
     for kmer_m in P_j[m]:
         for kmer_n in P_j[n]:
             kmer_mn = kmer_m+kmer_n
             if kmer_mn not in P_mn: continue
-            MI_mn += P_mn[kmer_mn]*log2(P_mn[kmer_mn]/(P_j[m][kmer_m]*P_j[n][kmer_n]))
+            MI_mn[kmer_mn] = P_mn[kmer_mn]*log2(P_mn[kmer_mn]/(P_j[m][kmer_m]*P_j[n][kmer_n]))
+            MI += MI_mn[kmer_mn]#P_mn[kmer_mn]*log2(P_mn[kmer_mn]/(P_j[m][kmer_m]*P_j[n][kmer_n]))
                    
-    return [(m,n),MI_mn]
+    return [(m,n),MI,MI_mn,P_mn]
     
     

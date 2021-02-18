@@ -9,6 +9,7 @@ from time import time
 import argparse
 import csv
 import numpy as np
+import gzip
 from numpy import ma
 
 import multiprocessing as mp
@@ -82,12 +83,18 @@ def plotMI():
     pool.terminate()
     
     #build the MI matrix
-    MI = -1*np.ones(shape=(M,M))
-    for j in range(0,len(res)):
-        inds = res[j][0]
-        mi = res[j][1]
-        MI[inds[1]-args.k,inds[0]] = mi
-
+    #save all individual position and k-mer contributions of MI into a file
+    with gzip.open(args.outdir+"MI_contributions.txt",'wb') as outfile:
+        w = csv.writer(outfile,delimiter='\t')
+        w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
+        MI = -1*np.ones(shape=(M,M))
+        for j in range(0,len(res)):
+            #res[j] = [(m,n),MI,MI_mn,P_mn]
+            inds = res[j][0]
+            mi = res[j][1]
+            MI[inds[1]-args.k,inds[0]] = mi
+            #saving all individual MI contributions to file
+            for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:k],kmer[k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:k]],P[inds[1]][kmer[k:]]])
     xticks = [res[0][0][1],res[-1][0][1]]
     yticks = [res[0][0][0],res[-1][0][0]]
     end = time()
