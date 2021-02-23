@@ -84,7 +84,7 @@ def plotMI():
     
     #build the MI matrix
     #save all individual position and k-mer contributions of MI into a file
-    with gzip.open(args.outdir+"MI_contributions.txt",'wb') as outfile:
+    with gzip.open(args.outdir+"MI_contributions.txt.gz",'wt') as outfile:
         w = csv.writer(outfile,delimiter='\t')
         w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
         MI = -1*np.ones(shape=(M,M))
@@ -94,7 +94,7 @@ def plotMI():
             mi = res[j][1]
             MI[inds[1]-args.k,inds[0]] = mi
             #saving all individual MI contributions to file
-            for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:k],kmer[k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:k]],P[inds[1]][kmer[k:]]])
+            for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
     xticks = [res[0][0][1],res[-1][0][1]]
     yticks = [res[0][0][0],res[-1][0][0]]
     end = time()
