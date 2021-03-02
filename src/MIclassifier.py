@@ -26,7 +26,7 @@ def MIclassifier():
     #read in the MI-distribution from plotMI output file
     #format of plotMI output is: ['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)']
     #and the file is gzipped
-    logP = {} #key = (i,j), value = {(a,b) : P_ij(a,b)} 
+    MI = {} #key = (i,j), value = {(a,b) : P_ij(a,b)} 
     with gzip.open(args.plotMI,'rt') as infile:
         r = csv.reader(infile,delimiter='\t')
         for row in r:
@@ -35,9 +35,9 @@ def MIclassifier():
             j = int(row[1])
             a = row[2]
             b = row[3]
-            P_ijab = float(row[5])
-            if (i,j) not in logP: logP[(i,j)] = {(a,b):log(P_ijab)}
-            else: logP[(i,j)][(a,b)] = log(P_ijab)
+            MI_ijab = float(row[4])
+            if (i,j) not in MI: MI[(i,j)] = {(a,b):MI_ijab}
+            else: MI[(i,j)][(a,b)] = MI_ijab
 
     #then scoring the input sequences using the sum of MI as classifier
     with open(args.outdir+"MI_classifier_scores.txt",'wt') as outfile:
@@ -49,7 +49,7 @@ def MIclassifier():
                 J = len(seq)
                 score = 0.0
                 for m in range(0,J-2*args.k+1):
-                    for n in range(m+args.k,J-args.k+1): score += logP[m,n][seq[m:m+args.k],seq[n:n+args.k]]
+                    for n in range(m+args.k,J-args.k+1): score += MI[m,n][seq[m:m+args.k],seq[n:n+args.k]]
                 w.writerow([score])    
 
 #end
