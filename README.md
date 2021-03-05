@@ -27,7 +27,7 @@ and install the packages with pip:
 
 Help message can be evoked by typing:
 
-`plotMI.py -h
+```plotMI.py -h
 usage: plotMI.py [-h] [--outdir OUTDIR] [--seqs SEQS] [--nproc NPROC]
                  [--figtype {pdf,png}] [--k K] [--v {0,1}] [--p P]
                  [--alphabet ALPHABET] [--minmi MINMI] [--step STEP]
@@ -60,7 +60,7 @@ optional arguments:
                         If yes, save the positional and pairwise k-mer
                         distributions and the MI contributions from each k-mer
                         and position pair into a separate file (default=no).
-                        Note that this is a large file of approximately 1GB.`
+                        Note that this is a large file of approximately 1GB.```
 
 ## 3. Usage examples
 
