@@ -34,6 +34,7 @@ def plotMI():
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
+    parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file of approximately 1GB.",type=str,choices=['yes','no'],default='no')
     args = parser.parse_args()
     
     #read in the sequences and store them as strings
@@ -84,19 +85,27 @@ def plotMI():
     
     #build the MI matrix
     #save all individual position and k-mer contributions of MI into a file
-    with gzip.open(args.outdir+"MI_contributions.txt.gz",'wt') as outfile:
-        w = csv.writer(outfile,delimiter='\t')
-        w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
+    if args.save_distributions=='yes':
+        with gzip.open(args.outdir+"MI_contributions.txt.gz",'wt') as outfile:
+            w = csv.writer(outfile,delimiter='\t')
+            w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
+            MI = -1*np.ones(shape=(M,M))
+            for j in range(0,len(res)):
+            
+                inds = res[j][0]
+                mi = res[j][1]
+                MI[inds[1]-args.k,inds[0]] = mi
+                MI[inds[0],inds[1]-args.k] = mi
+                #saving all individual MI contributions to file
+                for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+    else:
         MI = -1*np.ones(shape=(M,M))
         for j in range(0,len(res)):
-            
+
             inds = res[j][0]
             mi = res[j][1]
             MI[inds[1]-args.k,inds[0]] = mi
             MI[inds[0],inds[1]-args.k] = mi
-            #saving all individual MI contributions to file
-            for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
-    
     end = time()
     if args.v>0: print("Computed mutual information in "+str(end-start)+" seconds.")
     
