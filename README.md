@@ -11,7 +11,7 @@ All scripts are pure Python, so no compiling is needed. Easiest way is to clone 
 
 `git clone https://github.com/hartonen/plotMI.git`
 
-The scripts in this repository need specific Python packages to function properly. The easiest way to make sure everything works is to create a cirtual environment [https://docs.python.org/3/library/venv.html#module-venv] containing the tested versions of each package and then run the scripts in this environment. This is done by first creating a new virtual environment:
+The scripts in this repository need specific Python packages to function properly. The easiest way to make sure everything works is to create a virtual environment (https://docs.python.org/3/library/venv.html#module-venv) containing the tested versions of each package and then run the scripts in this environment. This is done by first creating a new virtual environment:
 
 `python3 -m venv /path/to/new/virtual/environment`
 
@@ -108,7 +108,7 @@ Note that due to generating the input sequences by random, the figure will not l
 
 ## 4. Output description
 
-By default plotMI will output two files: an image that contains the MI plot and a gzipped tab-delimited text-file that contains the corresponding MI matrix. Optionally, one can set the flag `--save_distribution yes`, which will then output the estimated probabilities and MI contributions for each k-mer and position pair. Note that depending on the length of the model, this is a large file (>1GB) An example of ten first liens of this file:
+By default plotMI will output two files: an image that contains the MI plot and a gzipped tab-delimited text-file that contains the corresponding MI matrix. Optionally, one can set the flag `--save_distribution yes`, which will then output the estimated probabilities and MI contributions for each k-mer and position pair. Note that depending on the length of the model, this is a large file (>1GB) An example of ten first lines of this file:
 
 ```
 #i      j       a       b       MI_ij(a,b)      P_ij(a,b)       P_i(a)  P_j(b)
