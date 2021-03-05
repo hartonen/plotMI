@@ -2,6 +2,7 @@
 
 PlotMI is a program for visualization of pairwise interactions in a set of input sequences by computing the pairwise mutual information between positional k-mer distributions. Description of the method is in manuscript:
 
+Hartonen T., Kivioja T., & Taipale J., (2021), "PlotMI: visualization of pairwise interactions and positional preferences learned by a deep learning model from sequence data", manuscript under preparation.
 
 
 ## 1. Installation
@@ -22,7 +23,7 @@ and install the packages with pip:
 
 `pip install -r data/plotMI_requirements.txt`
 
-## 2. Reproducing figures from plotMI-manuscript
+## 2. Usage example: Reproducing figure 1b from plotMI-manuscript
 
 In the following we show how to replicate the figures 1b and 1c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [https://github.com/hartonen/randomReads](randomReads) and  [https://github.com/hartonen/promoterAnalysis](promoterAnalysis) repositories. We will also use the  [https://bioinf.shenwei.me/seqkit/](Seqkit) tool for manipulating fasta-files.
 
