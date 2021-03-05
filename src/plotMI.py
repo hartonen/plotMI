@@ -10,7 +10,6 @@ import argparse
 import csv
 import numpy as np
 import gzip
-from numpy import ma
 
 import multiprocessing as mp
 
@@ -34,6 +33,7 @@ def plotMI():
     parser.add_argument("--p",help="Multiplier for pseudocount mass added to k-mer count. Total pseudocount mass added is p*(number of sequences) (default=5).",type=int,default=5)
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
+    parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
     args = parser.parse_args()
     
     #read in the sequences and store them as strings
@@ -89,14 +89,14 @@ def plotMI():
         w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
         MI = -1*np.ones(shape=(M,M))
         for j in range(0,len(res)):
-            #res[j] = [(m,n),MI,MI_mn,P_mn]
+            
             inds = res[j][0]
             mi = res[j][1]
             MI[inds[1]-args.k,inds[0]] = mi
+            MI[inds[0],inds[1]-args.k] = mi
             #saving all individual MI contributions to file
             for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
-    xticks = [res[0][0][1],res[-1][0][1]]
-    yticks = [res[0][0][0],res[-1][0][0]]
+    
     end = time()
     if args.v>0: print("Computed mutual information in "+str(end-start)+" seconds.")
     
@@ -104,17 +104,24 @@ def plotMI():
     #save the MI matrix to file
     np.savetxt(args.outdir+"MI.txt.gz",MI,delimiter='\t')
     
-    #plot the lower triangle of the MI-matrix
-    mask = np.zeros_like(MI)
-    mask[MI<0] = True
-
-    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='jet',cbar=True,cbar_kws={'label': 'MI'},xticklabels=xticks,yticklabels=yticks,mask=mask,vmin=args.minmi)
-    else: sns_plot = sns.heatmap(MI,cmap='jet',cbar=True,cbar_kws={'label': 'MI'},xticklabels=xticks,yticklabels=yticks,mask=mask)
-    sns_plot.set_xticks([i-args.k for i in xticks])
-    sns_plot.set_yticks(yticks)
+    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': 'MI'},vmin=args.minmi)
+    else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': 'MI'})
+    
+    xticks = []
+    xticklabels = []
+    yticks = []
+    yticklabels = []
+    for i in range(0,MI.shape[0],args.step):
+        xticks.append(i)
+        xticklabels.append(i)
+        yticks.append(i)
+        yticklabels.append(i+args.k)
+    xticks[-1] = MI.shape[0]-1; xticklabels[-1] = int(MI.shape[0]-1)
+    yticks[-1] = MI.shape[0]-1+args.k; yticklabels[-1] = int(MI.shape[0]-1+args.k)
+    sns_plot.set(xticks=xticks,xticklabels=xticklabels,yticks=yticks,yticklabels=yticklabels)    
     sns.despine(offset=10, trim=True)
     fig = sns_plot.get_figure()
-    fig.savefig(args.outdir+"MI."+args.figtype,dpi=150)
+    fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
     
     end = time()
     if args.v>0: print("Plotting done in "+str(end-start)+" seconds.")
