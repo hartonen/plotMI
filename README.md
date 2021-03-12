@@ -84,25 +84,29 @@ This should produce two output files identical to files `data/test-MI.png` and `
 
 In the following we show how to replicate the figures 1b and 1c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [https://github.com/hartonen/randomReads](randomReads) and  [https://github.com/hartonen/promoterAnalysis](promoterAnalysis) repositories. We will also use the  [https://bioinf.shenwei.me/seqkit/](Seqkit) tool for manipulating fasta-files.
 
-First we generate 1 million random DNA sequences with uniform nucleotide background using a script made for this purpose:
+First we generate 10 million random DNA sequences (10 separate files for faster scoring with the CNN model) with uniform nucleotide background using a script made for this purpose:
 
-`randomReads.py random_uniform_L200_N1M.fasta --L 200 --N 1000000`
+`for i in {1..10}; do randomReads.py random_uniform_L200_N1M_sample"$i".fasta --L 200 --N 1000000; done;`
 
-Next we use the pre-trained CNN model to score all these sequences:
+Next we use the pre-trained CNN model to score all these sequences. The pre-trained model can be downloaded from Zenodo with DOI: 10.5281/zenodo.4596516.
 
-`scorePromoters.py --outfile model-36-0.990.h5-random_uniform_L200_N1M_preds.txt --model model-36-0.990.h5 --sequences random_uniform_L200_N1M.fasta --nproc 30`
+`for i in {1..10}; do scorePromoters.py --outfile model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_preds.txt --model model-36-0.990.h5 --sequences random_uniform_L200_N1M_sample"$i".fasta --nproc 4 & done;`
 
 Then select the fasta-IDs of sequences that score higher than 0.9 according to the model:
 
-`awk '$2>0.9' model-36-0.990.h5-random_uniform_L200_N1M_preds.txt | cut -f1,1 > model-36-0.990.h5-random_uniform_L200_N1M_prob_more_09_ids.txt`
+`for i in {1..10}; do awk '$2>0.9' model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_preds.txt | cut -f1,1 > model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_prob_more_09_ids.txt; done;`
 
 Then we use the wonderful seqkit-package to extract the sequences matching to these IDs and convert them to sequence-only input for mutual information plotting:
 
-`seqkit grep -n -f model-36-0.990.h5-random_uniform_L200_N1M_prob_more_09_ids.txt random_uniform_L200_N1M.fasta | seqkit seq --seq > model-36-0.990.h5-random_uniform_L200_N1M_prob_more_09.seq`
+`for i in {1..10}; do seqkit grep -n -f model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_prob_more_09_ids.txt random_uniform_L200_N1M_sample"$i".fasta | seqkit seq --seq > model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_prob_more_09.seq; done;`
+
+Combine the sequences to a single file for MI plotting:
+
+`cat model-36-0.990.h5-random_uniform_L200_N1M_sample*_prob_more_09.seq > model-36-0.990.h5-random_uniform_L200_N10M_prob_more_09.seq`
 
 These sequences can then be visualized using plotMI (Figure 1b):
 
-`plotMI.py --outdir model-36-0.990.h5-random_uniform_L200_N1M_prob_more_09- --seqs model-36-0.990.h5-random_uniform_L200_N1M_prob_more_09.seq --nproc 30 --figtype png --k 3 --v 1 --p 5`
+`plotMI.py --outdir model-36-0.990.h5-random_uniform_L200_N1M0_prob_more_09- --seqs model-36-0.990.h5-random_uniform_L200_N10M_prob_more_09.seq --nproc 16 --figtype png --k 3 --v 1 --p 5`
 
 Note that due to generating the input sequences by random, the figure will not look exactly the same as in the manuscript.
 
