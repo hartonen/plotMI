@@ -83,14 +83,14 @@ This should produce two output files identical to files `data/test-MI.png` and `
 
 ### 3.2 Reproducing figure 1b from plotMI-manuscript
 
-In the following we show how to replicate the figures 1b and 1c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [https://github.com/hartonen/randomReads](randomReads) and  [https://github.com/hartonen/promoterAnalysis](promoterAnalysis) repositories. We will also use the  [https://bioinf.shenwei.me/seqkit/](Seqkit) tool for manipulating fasta-files.
+In the following we show how to replicate the figures 1b and 1c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [randomReads](https://github.com/hartonen/randomReads) and  [promoterAnalysis](https://github.com/hartonen/promoterAnalysis) repositories. We will also use the  [Seqkit](https://bioinf.shenwei.me/seqkit/) tool for manipulating fasta-files.
 
 First we generate 10 million random DNA sequences (10 separate files for faster scoring with the CNN model) with uniform nucleotide background using a script made for this purpose:
 
 `for i in {1..10}; do randomReads.py random_uniform_L200_N1M_sample"$i".fasta --L 200 --N 1000000; done;`
 
-Next we use the pre-trained CNN model to score all these sequences. The pre-trained model can be downloaded from Zenodo: [https://doi.org/10.5281/zenodo.4596516
-](10.5281/zenodo.4596516.)
+Next we use the pre-trained CNN model to score all these sequences. The pre-trained model can be downloaded from Zenodo: https://doi.org/10.5281/zenodo.4596516
+
 
 `for i in {1..10}; do scorePromoters.py --outfile model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_preds.txt --model model-36-0.990.h5 --sequences random_uniform_L200_N1M_sample"$i".fasta --nproc 4 & done;`
 
