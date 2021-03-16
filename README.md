@@ -1,8 +1,9 @@
 # PlotMI
 
-PlotMI is a program for visualization of pairwise interactions in a set of input sequences by computing the pairwise mutual information between positional k-mer distributions. Description of the method is in manuscript:
+PlotMI is a program for visualization of pairwise interactions in a set of input sequences by computing the pairwise mutual information between positional k-mer distributions. Description of the method is in the following preprint:
 
-Hartonen T., Kivioja T., & Taipale J., (2021), "PlotMI: visualization of pairwise interactions and positional preferences learned by a deep learning model from sequence data", manuscript under preparation.
+Tuomo Hartonen, Teemu Kivioja and Jussi Taipale, "PlotMI: visualization of pairwise interactions and positional preferences learned by a deep learning model from sequence data",
+bioRxiv 2021.03.14.435285; doi: https://doi.org/10.1101/2021.03.14.435285
 
 
 ## 1. Installation
