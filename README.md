@@ -89,7 +89,8 @@ First we generate 10 million random DNA sequences (10 separate files for faster 
 
 `for i in {1..10}; do randomReads.py random_uniform_L200_N1M_sample"$i".fasta --L 200 --N 1000000; done;`
 
-Next we use the pre-trained CNN model to score all these sequences. The pre-trained model can be downloaded from Zenodo with DOI: 10.5281/zenodo.4596516.
+Next we use the pre-trained CNN model to score all these sequences. The pre-trained model can be downloaded from Zenodo: [https://doi.org/10.5281/zenodo.4596516
+](10.5281/zenodo.4596516.)
 
 `for i in {1..10}; do scorePromoters.py --outfile model-36-0.990.h5-random_uniform_L200_N1M_sample"$i"_preds.txt --model model-36-0.990.h5 --sequences random_uniform_L200_N1M_sample"$i".fasta --nproc 4 & done;`
 
