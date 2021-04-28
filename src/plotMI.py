@@ -26,6 +26,7 @@ def plotMI():
     #PARAMETERS
     parser.add_argument("--outdir",help="Full path to the output directory.",type=str)
     parser.add_argument("--seqs",help="Full path to the plain text input sequence file. Each sequence must be of same length and on its separate line.",type=str)
+    parser.add_argument("--distance",help="Distance used to compare positional k-mer distributions. MI=mutual information (default), BC=Bhattacharyya distance.",type=str,choices=['MI','BC'],default='MI')
     parser.add_argument("--nproc",help="Number of parallel processes used when computing MI (default=1).",type=int,default=1)
     parser.add_argument("--figtype",help="png or pdf (default=png).",type=str,choices=['pdf','png'],default='png')
     parser.add_argument("--k",help="length of k-mer distributions used to calculate MI (default=3).",type=int,default=3)
@@ -35,6 +36,7 @@ def plotMI():
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
     parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file of approximately 1GB.",type=str,choices=['yes','no'],default='no')
+    
     args = parser.parse_args()
     
     #read in the sequences and store them as strings
@@ -69,52 +71,95 @@ def plotMI():
     if args.v>0: print("Calculated the positional "+str(args.k)+"-mer frequencies in "+str(end-start)+" seconds.")
     
     start = time()
-    #calculate MI in parallel
-    pool = mp.Pool(args.nproc)
-    res = []
+    if args.distance=='MI':
+        #calculate MI in parallel
+        pool = mp.Pool(args.nproc)
+        res = []
     
-    M = 0 #number of pairwise k-mer distributions
-    for m in range(0,J-2*args.k+1):
-        M += 1
-        for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
-    res = [r.get() for r in res]    
+        M = 0 #number of pairwise k-mer distributions
+        for m in range(0,J-2*args.k+1):
+            M += 1
+            for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+        res = [r.get() for r in res]    
 
-    pool.close()
-    pool.join()
-    pool.terminate()
+        pool.close()
+        pool.join()
+        pool.terminate()
     
-    #build the MI matrix
-    #save all individual position and k-mer contributions of MI into a file
-    if args.save_distributions=='yes':
-        with gzip.open(args.outdir+"MI_contributions.txt.gz",'wt') as outfile:
-            w = csv.writer(outfile,delimiter='\t')
-            w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
+        #build the MI matrix
+        #save all individual position and k-mer contributions of MI into a file
+        if args.save_distributions=='yes':
+            with gzip.open(args.outdir+"MI_contributions.txt.gz",'wt') as outfile:
+                w = csv.writer(outfile,delimiter='\t')
+                w.writerow(['#i','j','a','b','MI_ij(a,b)','P_ij(a,b)','P_i(a)','P_j(b)'])
+                MI = -1*np.ones(shape=(M,M))
+                for j in range(0,len(res)):
+            
+                    inds = res[j][0]
+                    mi = res[j][1]
+                    MI[inds[1]-args.k,inds[0]] = mi
+                    MI[inds[0],inds[1]-args.k] = mi
+                    #saving all individual MI contributions to file
+                    for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+        else:
             MI = -1*np.ones(shape=(M,M))
             for j in range(0,len(res)):
-            
+
                 inds = res[j][0]
                 mi = res[j][1]
                 MI[inds[1]-args.k,inds[0]] = mi
                 MI[inds[0],inds[1]-args.k] = mi
-                #saving all individual MI contributions to file
-                for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
-    else:
-        MI = -1*np.ones(shape=(M,M))
-        for j in range(0,len(res)):
+    elif args.distance=='BC':
+        #calculate BC distance in parallel
+        pool = mp.Pool(args.nproc)
+        res = []
 
-            inds = res[j][0]
-            mi = res[j][1]
-            MI[inds[1]-args.k,inds[0]] = mi
-            MI[inds[0],inds[1]-args.k] = mi
+        M = 0 #number of position pairs
+        for m in range(0,J-2*args.k+1):
+            M += 1
+            for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getBC_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+        res = [r.get() for r in res]
+
+        pool.close()
+        pool.join()
+        pool.terminate()
+        #build the BC matrix
+        if args.save_distributions=='yes':
+            with gzip.open(args.outdir+"BC_contributions.txt.gz",'wt') as outfile:
+                w = csv.writer(outfile,delimiter='\t')
+                w.writerow(['#i','j','a','a','BC_ij(a,a)','P_i(a)','P_j(a)'])
+                MI = -1*np.ones(shape=(M,M))
+                for j in range(0,len(res)):
+
+                    inds = res[j][0]
+                    mi = res[j][1]
+                    MI[inds[1]-args.k,inds[0]] = mi
+                    MI[inds[0],inds[1]-args.k] = mi
+                    #saving all individual MI contributions to file
+                    for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+        else:
+            MI = -1*np.ones(shape=(M,M))
+            for j in range(0,len(res)):
+
+                inds = res[j][0]
+                mi = res[j][1]
+                MI[inds[1]-args.k,inds[0]] = mi
+                MI[inds[0],inds[1]-args.k] = mi
+                
     end = time()
     if args.v>0: print("Computed mutual information in "+str(end-start)+" seconds.")
     
     start = time()
-    #save the MI matrix to file
-    np.savetxt(args.outdir+"MI.txt.gz",MI,delimiter='\t')
+    #save the matrix to file
+    if args.distance=='MI':
+        np.savetxt(args.outdir+"MI.txt.gz",MI,delimiter='\t')
+        cbar_title = 'MI'
+    elif args.distance=='BC':
+        np.savetxt(args.outdir+"BC.txt.gz",MI,delimiter='\t')
+        cbar_title = 'Bhattacharyya distance'
     
-    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': 'MI'},vmin=args.minmi)
-    else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': 'MI'})
+    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi)
+    else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title})
     
     xticks = []
     xticklabels = []
@@ -130,7 +175,8 @@ def plotMI():
     sns_plot.set(xticks=xticks,xticklabels=xticklabels,yticks=yticks,yticklabels=yticklabels)    
     sns.despine(offset=10, trim=True)
     fig = sns_plot.get_figure()
-    fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
+    if args.distance=='MI': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
+    elif args.distance=='BC': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
     
     end = time()
     if args.v>0: print("Plotting done in "+str(end-start)+" seconds.")
