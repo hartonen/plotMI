@@ -13,7 +13,7 @@ import gzip
 
 import multiprocessing as mp
 
-from helpers import getP_j, getMI_mn
+from helpers import getP_j, getMI_mn, getBC_mn
 
 def plotMI():
 
@@ -147,7 +147,7 @@ def plotMI():
                 MI[inds[0],inds[1]-args.k] = mi
                 
     end = time()
-    if args.v>0: print("Computed mutual information in "+str(end-start)+" seconds.")
+    if args.v>0: print("Computed distances between positional k-mer distributions in "+str(end-start)+" seconds.")
     
     start = time()
     #save the matrix to file
@@ -176,7 +176,7 @@ def plotMI():
     sns.despine(offset=10, trim=True)
     fig = sns_plot.get_figure()
     if args.distance=='MI': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
-    elif args.distance=='BC': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
+    elif args.distance=='BC': fig.savefig(args.outdir+"BC."+args.figtype,dpi=300)
     
     end = time()
     if args.v>0: print("Plotting done in "+str(end-start)+" seconds.")

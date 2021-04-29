@@ -57,9 +57,11 @@ def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     BC = 0.0
     BC_mn = {} #dictionary containing all individual contributions to MI
     for kmer_m in P_j[m]:
+        if kmer_m not in P_j[n]: continue
         BC_mn[kmer_m] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])
         BC += BC_mn[kmer_m]
 
+    BC = -1*log(BC)    
     return [(m,n),BC,BC_mn,None]
 
 def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
