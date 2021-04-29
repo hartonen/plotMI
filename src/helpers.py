@@ -37,13 +37,39 @@ def getP_j(seqs,j,I,J,k,p,alphabet):
        
     return P_j
 
+def getHE_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
+    #Function that calculates the Hellinger distance between k-mer distributions starting at position j
+    #and all other positions after j
+    #input parameters:
+    #seqs = list of lists of all input sequences
+    #m = position index 1 for the pair
+    #n = position index 2 for the pair
+    #I = total number of sequences
+    #J = length of sequences
+    #P = singe site k-mer frequencies
+    #k = k-mer length
+    #p = pseudocount mass
+    #alphabet = alphabet used
+    n_a = len(alphabet)
+    #possible pseudocount has been applied to position-specific k-mer distributions earlier
+    #calculate Hellinger distance HE(P_i,P_j) = \sum_{a \in K} \sqrt{1-P_i(a)\times P_j(a)}
+    #where K is the set of all possible k-mers
+    HE = 0.0
+    HE_mn = {} #dictionary containing all individual contributions to HE
+    for kmer_m in P_j[m]:
+        if kmer_m not in P_j[n]: continue
+        HE_mn[kmer_m] = sqrt(1.0-P_j[m][kmer_m]*P_j[n][kmer_m])
+        HE += HE_mn[kmer_m]
+
+    return [(m,n),HE,HE_mn,None]
+
 def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #Function that calculates the Battacharyya distance between k-mer distributions starting at position j
     #and all other positions after j
     #input parameters:
     #seqs = list of lists of all input sequences
-    #m = position index 1 for the MI pair
-    #n = position index 2 for the MI pair
+    #m = position index 1 for the pair
+    #n = position index 2 for the pair
     #I = total number of sequences
     #J = length of sequences
     #P = singe site k-mer frequencies
@@ -55,7 +81,7 @@ def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #calculate Bhattarachayya distance D_B(P_i,P_j) = -ln(\sum_{a \in K} \sqrt{P_i(a)\times P_j(a)})
     #where K is the set of all possible k-mers
     BC = 0.0
-    BC_mn = {} #dictionary containing all individual contributions to MI
+    BC_mn = {} #dictionary containing all individual contributions to BC
     for kmer_m in P_j[m]:
         if kmer_m not in P_j[n]: continue
         BC_mn[kmer_m] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])

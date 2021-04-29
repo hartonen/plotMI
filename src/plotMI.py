@@ -26,7 +26,7 @@ def plotMI():
     #PARAMETERS
     parser.add_argument("--outdir",help="Full path to the output directory.",type=str)
     parser.add_argument("--seqs",help="Full path to the plain text input sequence file. Each sequence must be of same length and on its separate line.",type=str)
-    parser.add_argument("--distance",help="Distance used to compare positional k-mer distributions. MI=mutual information (default), BC=Bhattacharyya distance.",type=str,choices=['MI','BC'],default='MI')
+    parser.add_argument("--distance",help="Distance used to compare positional k-mer distributions. MI=mutual information (default), BC=Bhattacharyya distance, HE=Hellinger distance.",type=str,choices=['MI','BC','HE'],default='MI')
     parser.add_argument("--nproc",help="Number of parallel processes used when computing MI (default=1).",type=int,default=1)
     parser.add_argument("--figtype",help="png or pdf (default=png).",type=str,choices=['pdf','png'],default='png')
     parser.add_argument("--k",help="length of k-mer distributions used to calculate MI (default=3).",type=int,default=3)
@@ -145,7 +145,42 @@ def plotMI():
                 mi = res[j][1]
                 MI[inds[1]-args.k,inds[0]] = mi
                 MI[inds[0],inds[1]-args.k] = mi
-                
+    elif args.distance=='HE':
+        #calculate HE distance in parallel
+        pool = mp.Pool(args.nproc)
+        res = []
+
+        M = 0 #number of position pairs
+        for m in range(0,J-2*args.k+1):
+            M += 1
+            for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getHE_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+        res = [r.get() for r in res]
+
+        pool.close()
+        pool.join()
+        pool.terminate()
+        #build the HE matrix
+        if args.save_distributions=='yes':
+            with gzip.open(args.outdir+"HE_contributions.txt.gz",'wt') as outfile:
+                w = csv.writer(outfile,delimiter='\t')
+                w.writerow(['#i','j','a','a','HE_ij(a,a)','P_i(a)','P_j(a)'])
+                MI = -1*np.ones(shape=(M,M))
+                for j in range(0,len(res)):
+
+                    inds = res[j][0]
+                    mi = res[j][1]
+                    MI[inds[1]-args.k,inds[0]] = mi
+                    MI[inds[0],inds[1]-args.k] = mi
+                    #saving all individual MI contributions to file
+                    for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+        else:
+            MI = -1*np.ones(shape=(M,M))
+            for j in range(0,len(res)):
+
+                inds = res[j][0]
+                mi = res[j][1]
+                MI[inds[1]-args.k,inds[0]] = mi
+                MI[inds[0],inds[1]-args.k] = mi
     end = time()
     if args.v>0: print("Computed distances between positional k-mer distributions in "+str(end-start)+" seconds.")
     
@@ -157,6 +192,9 @@ def plotMI():
     elif args.distance=='BC':
         np.savetxt(args.outdir+"BC.txt.gz",MI,delimiter='\t')
         cbar_title = 'Bhattacharyya distance'
+    elif args.distance=='HE':
+        np.savetxt(args.outdir+"HE.txt.gz",MI,delimiter='\t')
+        cbar_title = 'Hellinger distance'
     
     if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi)
     else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title})
@@ -177,6 +215,7 @@ def plotMI():
     fig = sns_plot.get_figure()
     if args.distance=='MI': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
     elif args.distance=='BC': fig.savefig(args.outdir+"BC."+args.figtype,dpi=300)
+    elif args.distance=='HE': fig.savefig(args.outdir+"HE."+args.figtype,dpi=300)
     
     end = time()
     if args.v>0: print("Plotting done in "+str(end-start)+" seconds.")
