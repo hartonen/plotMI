@@ -13,7 +13,7 @@ import gzip
 
 import multiprocessing as mp
 
-from helpers import getP_j, getMI_mn, getBC_mn
+from helpers import getP_j, getMI_mn, getBC_mn, getHE_mn
 
 def plotMI():
 
@@ -26,7 +26,7 @@ def plotMI():
     #PARAMETERS
     parser.add_argument("--outdir",help="Full path to the output directory.",type=str)
     parser.add_argument("--seqs",help="Full path to the plain text input sequence file. Each sequence must be of same length and on its separate line.",type=str)
-    parser.add_argument("--distance",help="Distance used to compare positional k-mer distributions. MI=mutual information (default), BC=Bhattacharyya distance, HE=Hellinger distance.",type=str,choices=['MI','BC','HE'],default='MI')
+    parser.add_argument("--distance",help="Distance used to compare positional k-mer distributions. MI=mutual information (default), BC=Bhattacharyya distance, BC_inv=inverted Bhattacharyya distance, HE=Hellinger distance.",type=str,choices=['MI','BC','BC_inv','HE'],default='MI')
     parser.add_argument("--nproc",help="Number of parallel processes used when computing MI (default=1).",type=int,default=1)
     parser.add_argument("--figtype",help="png or pdf (default=png).",type=str,choices=['pdf','png'],default='png')
     parser.add_argument("--k",help="length of k-mer distributions used to calculate MI (default=3).",type=int,default=3)
@@ -109,7 +109,7 @@ def plotMI():
                 mi = res[j][1]
                 MI[inds[1]-args.k,inds[0]] = mi
                 MI[inds[0],inds[1]-args.k] = mi
-    elif args.distance=='BC':
+    elif args.distance=='BC' or args.distance=='BC_inv':
         #calculate BC distance in parallel
         pool = mp.Pool(args.nproc)
         res = []
@@ -117,7 +117,9 @@ def plotMI():
         M = 0 #number of position pairs
         for m in range(0,J-2*args.k+1):
             M += 1
-            for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getBC_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+            for n in range(m+args.k,J-args.k+1):
+                if args.distance=='BC': res.append(pool.apply_async(getBC_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+                else: res.append(pool.apply_async(getBC_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet,True)))
         res = [r.get() for r in res]
 
         pool.close()
@@ -192,6 +194,9 @@ def plotMI():
     elif args.distance=='BC':
         np.savetxt(args.outdir+"BC.txt.gz",MI,delimiter='\t')
         cbar_title = 'Bhattacharyya distance'
+    elif args.distance=='BC_inv':
+        np.savetxt(args.outdir+"BC_inv.txt.gz",MI,delimiter='\t')
+        cbar_title = 'inverted Bhattacharyya distance'
     elif args.distance=='HE':
         np.savetxt(args.outdir+"HE.txt.gz",MI,delimiter='\t')
         cbar_title = 'Hellinger distance'
@@ -215,6 +220,7 @@ def plotMI():
     fig = sns_plot.get_figure()
     if args.distance=='MI': fig.savefig(args.outdir+"MI."+args.figtype,dpi=300)
     elif args.distance=='BC': fig.savefig(args.outdir+"BC."+args.figtype,dpi=300)
+    elif args.distance=='BC_inv': fig.savefig(args.outdir+"BC_inv."+args.figtype,dpi=300)
     elif args.distance=='HE': fig.savefig(args.outdir+"HE."+args.figtype,dpi=300)
     
     end = time()
