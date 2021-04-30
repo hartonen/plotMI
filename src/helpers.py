@@ -1,5 +1,6 @@
 from math import log2, log, sqrt
 from itertools import product
+from scipy.spatial.distance import jensenshannon
 
 def getP_j(seqs,j,I,J,k,p,alphabet):
     #Function that calculates the k-mer frequency distributions for position j.
@@ -37,6 +38,35 @@ def getP_j(seqs,j,I,J,k,p,alphabet):
        
     return P_j
 
+def getJS_mn(seqs,m,n,I,J,P_j,k,p,alphabet,inv=False):
+    #Function that calculates the Jensen-Shannon divergence between k-mer distributions starting at position j
+    #and all other positions after j
+    #input parameters:
+    #seqs = list of lists of all input sequences
+    #m = position index 1 for the pair
+    #n = position index 2 for the pair
+    #I = total number of sequences
+    #J = length of sequences
+    #P = singe site k-mer frequencies
+    #k = k-mer length
+    #p = pseudocount mass
+    #alphabet = alphabet used
+    JS = 0.0
+    JS_mn = {} #dictionary containing all individual contributions to JS
+    kmers = set()
+    for kmer_m in P_j[m]: kmers.add(kmer_m)
+    for kmer_n in P_j[n]: kmers.add(kmer_n)
+    probs_m = []
+    probs_n = []
+    for kmer in kmers:
+        if kmer in P_j[m]: probs_m.append(P_j[m][kmer])
+        else: probs_m.append(0.0)
+        if kmer in P_j[n]: probs_n.append(P_j[n][kmer])
+        else: probs_n.append(0.0)
+    if not inv: JS = jensenshannon(probs_m,probs_n,2) #using base 2 for logarithm for bits
+    else: JS = 1-jensenshannon(probs_m,probs_n,2) #inverse of JS distance (high values mean similarity)
+    return [(m,n),JS,JS_mn,None]
+    
 def getHE_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #Function that calculates the Hellinger distance between k-mer distributions starting at position j
     #and all other positions after j
@@ -92,6 +122,7 @@ def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet,inv=False):
     else: BC = -1*log(1.0-BC)
     
     return [(m,n),BC,BC_mn,None]
+
 
 def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #Function that calculates mutual information between k-mer distributions starting at position j
