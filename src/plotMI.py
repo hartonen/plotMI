@@ -73,18 +73,21 @@ def plotMI():
     start = time()
     if args.distance=='MI':
         #calculate MI in parallel
-        pool = mp.Pool(args.nproc)
+        if args.nproc>1: pool = mp.Pool(args.nproc)
         res = []
     
         M = 0 #number of pairwise k-mer distributions
         for m in range(0,J-2*args.k+1):
             M += 1
-            for n in range(m+args.k,J-args.k+1): res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
-        res = [r.get() for r in res]    
+            for n in range(m+args.k,J-args.k+1):
+                if args.nproc>1: res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+                else: res.append(getMI_mn(seqs,m,n,I,J,P,args.k,p,alphabet))
+        if args.nproc>1:
+            res = [r.get() for r in res]    
 
-        pool.close()
-        pool.join()
-        pool.terminate()
+            pool.close()
+            pool.join()
+            pool.terminate()
     
         #build the MI matrix
         #save all individual position and k-mer contributions of MI into a file
