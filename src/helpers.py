@@ -16,7 +16,8 @@ def getP_j(seqs,j,I,J,k,p,alphabet):
     #alphabet = alphabet used
     n_a = len(alphabet)
     P_j = {} #key = k-mer, value = frequency
-    
+
+        
     if p>0:
         #adding pseudocount mass p equally to each k-mer count
         #kmers = [''.join(c) for c in product(alphabet,repeat=k)]
@@ -126,7 +127,7 @@ def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet,inv=False):
     return [(m,n),BC,BC_mn,None]
 
 
-def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
+def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet,randomized_positions):
     #Function that calculates mutual information between k-mer distributions starting at position j
     #and all other positions after j
     #input parameters:
@@ -139,6 +140,10 @@ def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     #k = k-mer length
     #p = pseudocount mass
     #alphabet = alphabet used
+    #randomized_positions = list of position pairs for which MI should be randomized (MI for these position pairs set to zero)
+
+    if (m,n) in randomized_positions: return [(m,n),0.0,Counter(),Counter()]
+    
     n_a = len(alphabet)
     #calculate pairwise frequencies for positions m and n
     P_mn = Counter() #key = k-mer pair, for example "AAA" and "ACG is coded as "AAAACG", value = frequency

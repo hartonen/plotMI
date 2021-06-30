@@ -35,9 +35,17 @@ def plotMI():
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
-    parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file of approximately 1GB.",type=str,choices=['yes','no'],default='no')
+    parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file, possibly many GBs.",type=str,choices=['yes','no'],default='no')
+    parser.add_argument("--randomized_pairs",help="File containing list of position pairs whose k-mer distributions will be randomized to flat uniform distribution according to given alphabet before computing MI. Position indices should start from 0 and be saved in tab-separated format with one pair on a single row.",type=str,default=None)
     
     args = parser.parse_args()
+
+    if args.randomized_pairs is None: randomized_pairs = []
+    else:
+        randomized_pairs = []
+        with open(args.randomized_pairs,'rt') as infile:
+            r = csv.reader(infile,delimiter='\t')
+            for row in r: randomized_pairs.append((int(row[0]),int(row[1])))
     
     #read in the sequences and store them as strings
     start = time()
@@ -80,7 +88,7 @@ def plotMI():
         for m in range(0,J-2*args.k+1):
             M += 1
             for n in range(m+args.k,J-args.k+1):
-                if args.nproc>1: res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet)))
+                if args.nproc>1: res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet,randomized_pairs)))
                 else: res.append(getMI_mn(seqs,m,n,I,J,P,args.k,p,alphabet))
         if args.nproc>1:
             res = [r.get() for r in res]    
