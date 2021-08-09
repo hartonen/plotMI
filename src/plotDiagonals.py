@@ -28,7 +28,11 @@ def plotDiagonals():
 
     #compute mean of each diagonal
     mean_of_diag = []
-    for i in range(int(MI.shape[0]/2)+1): mean_of_diag.append(np.mean(np.diagonal(MI,offset=i)))
+    #compute max of each diagonal
+    max_of_diag = []
+    for i in range(int(MI.shape[0]/2)+1):
+        mean_of_diag.append(np.mean(np.diagonal(MI,offset=i)))
+        max_of_diag.append(np.max(np.diagonal(MI,offset=i)))
     #plot mean of each diagonal
     x = [args.k]
     for i in range(1,len(mean_of_diag)): x.append(x[-1]+1)
@@ -41,6 +45,18 @@ def plotDiagonals():
     plt.clf()
     np.savetxt(args.outdir+"mean_MI_of_diagonals.txt",mean_of_diag,delimiter='\t')
 
+    #plot max of each diagonal
+    x = [args.k]
+    for i in range(1,len(max_of_diag)): x.append(x[-1]+1)
+    plt.plot(x,max_of_diag,'k')
+    plt.xlim([x[0],x[-1]])
+    plt.ylabel('Max MI')
+    plt.xlabel('Distance between '+str(args.k)+'-mer distributions')
+    plt.tight_layout()
+    plt.savefig(args.outdir+"max_MI_of_diagonals."+args.figtype,dpi=150)
+    plt.clf()
+    np.savetxt(args.outdir+"max_MI_of_diagonals.txt",max_of_diag,delimiter='\t')
+    
     #plot MI of main diagonal
     main_diag = np.diagonal(MI,offset=0)
     x = [args.k]
