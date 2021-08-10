@@ -10,6 +10,7 @@ import argparse
 import csv
 import numpy as np
 import gzip
+import sys
 
 import multiprocessing as mp
 
@@ -31,7 +32,7 @@ def plotMI():
     parser.add_argument("--figtype",help="png or pdf (default=png).",type=str,choices=['pdf','png'],default='png')
     parser.add_argument("--k",help="length of k-mer distributions used to calculate MI (default=3).",type=int,default=3)
     parser.add_argument("--v",help="Verbosity level, 0=none, 1=print info on screen (default=1).",type=int,choices=[0,1],default=1)
-    parser.add_argument("--p",help="Multiplier for pseudocount mass added to k-mer count. Total pseudocount mass added is p*(number of sequences) (default=5).",type=int,default=5)
+    parser.add_argument("--p",help="Multiplier for pseudocount mass added to k-mer count. Total pseudocount mass added is p*(number of sequences) (default=5).",type=float,default=5)
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
@@ -40,6 +41,10 @@ def plotMI():
     
     args = parser.parse_args()
 
+    #save the command used to evoke plotMI to a log file
+    with open(args.outdir+"plotMI_log.txt",'wt') as logfile:
+        logfile.write(" ".join(sys.argv))
+        
     if args.randomized_pairs is None: randomized_pairs = []
     else:
         randomized_pairs = []
