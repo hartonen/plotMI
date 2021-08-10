@@ -37,7 +37,7 @@ def plotMI():
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
     parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file, possibly many GBs.",type=str,choices=['yes','no'],default='no')
-    parser.add_argument("--randomized_pairs",help="File containing list of position pairs whose k-mer distributions will be randomized to flat uniform distribution according to given alphabet before computing MI. Position indices should start from 0 and be saved in tab-separated format with one pair on a single row.",type=str,default=None)
+    parser.add_argument("--randomized_pairs",help="EXPERIMENTAL FEATURE: File containing list of position pairs whose k-mer distributions will be randomized to flat uniform distribution according to given alphabet before computing MI. Position indices should start from 0 and be saved in tab-separated format with one pair on a single row.",type=str,default=None)
     
     args = parser.parse_args()
 

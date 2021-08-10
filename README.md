@@ -30,10 +30,12 @@ Help message can be evoked by typing:
 
 ```
 plotMI.py -h
-usage: plotMI.py [-h] [--outdir OUTDIR] [--seqs SEQS] [--nproc NPROC]
+usage: plotMI.py [-h] [--outdir OUTDIR] [--seqs SEQS]
+                 [--distance {MI,JS,JS_inv,BC,BC_inv,HE}] [--nproc NPROC]
                  [--figtype {pdf,png}] [--k K] [--v {0,1}] [--p P]
                  [--alphabet ALPHABET] [--minmi MINMI] [--step STEP]
                  [--save_distributions {yes,no}]
+                 [--randomized_pairs RANDOMIZED_PAIRS]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,6 +43,13 @@ optional arguments:
   --seqs SEQS           Full path to the plain text input sequence file. Each
                         sequence must be of same length and on its separate
                         line.
+  --distance {MI,JS,JS_inv,BC,BC_inv,HE}
+                        Distance used to compare positional k-mer
+                        distributions. MI=mutual information (default),
+                        JS=Jensen-Shannon divergence, JS_inv=inverted Jensen-
+                        Shannon distance, BC=Bhattacharyya distance,
+                        BC_inv=inverted Bhattacharyya distance, HE=Hellinger
+                        distance.
   --nproc NPROC         Number of parallel processes used when computing MI
                         (default=1).
   --figtype {pdf,png}   png or pdf (default=png).
@@ -62,8 +71,19 @@ optional arguments:
                         If yes, save the positional and pairwise k-mer
                         distributions and the MI contributions from each k-mer
                         and position pair into a separate file (default=no).
-                        Note that this is a large file of approximately 1GB.
+                        Note that this is a large file, possibly many GBs.
+  --randomized_pairs RANDOMIZED_PAIRS
+                        EXPERIMENTAL FEATURE: File containing list of position
+                        pairs whose k-mer distributions will be randomized to
+                        flat uniform distribution according to given alphabet
+                        before computing MI. Position indices should start
+                        from 0 and be saved in tab-separated format with one
+                        pair on a single row.
 ```
+
+### 2.1 Input sequence format
+
+PlotMI accepts sequences in plain text format where each row is separated from each other by line change. Note that all rows must be of equal length and each letter that appears in the input sequences must be present in the string given with the `--alphabet` flag. For example, if we set `--alphabet ACGT`, plotMI will not be able to handle sequences that have a letter `N` in them.
 
 ## 3. Usage examples
 
@@ -81,9 +101,9 @@ Plotting done in 0.4934566020965576 seconds.
 
 This should produce two output files identical to files `data/test-MI.png` and `data/test-MI.txt.gz`.
 
-### 3.2 Reproducing figure 1b from plotMI-manuscript
+### 3.2 Reproducing figure 2a from plotMI-manuscript
 
-In the following we show how to replicate the figures 1b and 1c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [randomReads](https://github.com/hartonen/randomReads) and  [promoterAnalysis](https://github.com/hartonen/promoterAnalysis) repositories. We will also use the  [Seqkit](https://bioinf.shenwei.me/seqkit/) tool for manipulating fasta-files.
+In the following we show how to replicate the figures 2a-c from the plotMI-manuscript. For this we will need two other Python scripts from the authors from,  [randomReads](https://github.com/hartonen/randomReads) and  [promoterAnalysis](https://github.com/hartonen/promoterAnalysis) repositories. We will also use the  [Seqkit](https://bioinf.shenwei.me/seqkit/) tool for manipulating fasta-files.
 
 First we generate 10 million random DNA sequences (10 separate files for faster scoring with the CNN model) with uniform nucleotide background using a script made for this purpose:
 
@@ -110,11 +130,13 @@ These sequences can then be visualized using plotMI (Figure 1b):
 
 `plotMI.py --outdir model-36-0.990.h5-random_uniform_L200_N1M0_prob_more_09- --seqs model-36-0.990.h5-random_uniform_L200_N10M_prob_more_09.seq --nproc 16 --figtype png --k 3 --v 1 --p 5`
 
-Note that due to generating the input sequences by random, the figure will not look exactly the same as in the manuscript.
+To recreate Figures 2 b and c, we use the helper script `plotDiagonals.py` from the plotMI repository, which reads in the MI-matrix (flag --MI) and plots the main diagonal as well as the average and maximum MI at each diagonal of the MI matrix:
+
+`plotDiagonals.py --outdir model-36-0.990.h5-random_uniform_L200_N1M0_prob_more_09- --MI model-36-0.990.h5-random_uniform_L200_N1M0_prob_more_09-MI.txt.gz --k 3`
 
 ## 4. Output description
 
-By default plotMI will output two files: an image that contains the MI plot and a gzipped tab-delimited text-file that contains the corresponding MI matrix. Optionally, one can set the flag `--save_distribution yes`, which will then output the estimated probabilities and MI contributions for each k-mer and position pair. Note that depending on the length of the model, this is a large file (>1GB) An example of ten first lines of this file:
+By default plotMI will output three files: an image that contains the MI plot, a gzipped tab-delimited text-file that contains the corresponding MI matrix and a log file that contains only the command used to run plotMI. Optionally, one can set the flag `--save_distribution yes`, which will then output the estimated probabilities and MI contributions for each k-mer and position pair. Note that depending on the length of the model, this is a large file (>1GB) An example of ten first lines of this file:
 
 ```
 #i      j       a       b       MI_ij(a,b)      P_ij(a,b)       P_i(a)  P_j(b)
