@@ -91,13 +91,14 @@ PlotMI accepts sequences in plain text format where each row is separated from e
 
 The most basic use case for plotMI only requires input sequences that have been filtered using a machine learning model. Here as an example, we reproduce Figure 1d from the plotMI manuscript using random uniform DNA sequences that have been filtered using a convolutional neural network model that has been trained to recognize human promoter sequences (see the manuscript for details). The file `data/model-492-0.882.h5-random-uniform-1M-prob-more-09.seq` contains 49,261 sequences that have a probability >0.9 of being active human promoters based on the CNN model. Using these sequences, we can visualize the interactions learned by the human promoter CNN model with:  
 
-`plotMI.py --outdir ./test- --seqs model-492-0.882.h5-random-uniform-1M-prob-more-09.seq --nproc 4 --figtype png
+```
+plotMI.py --outdir ./test- --seqs model-492-0.882.h5-random-uniform-1M-prob-more-09.seq --nproc 4 --figtype png
 Alphabet: ACTG
 Read in 49261 sequences of length 100 in 0.04489850997924805 seconds.
 Calculated the positional 3-mer frequencies in 2.0755910873413086 seconds.
 Computed mutual information in 83.16843390464783 seconds.
 Plotting done in 0.4934566020965576 seconds.
-`
+```
 
 This should produce two output files identical to files `data/test-MI.png` and `data/test-MI.txt.gz`.
 
