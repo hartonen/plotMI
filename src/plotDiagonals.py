@@ -30,7 +30,7 @@ def plotDiagonals():
     mean_of_diag = []
     #compute max of each diagonal
     max_of_diag = []
-    for i in range(int(MI.shape[0]/2)+1):
+    for i in range(int(MI.shape[0])):#/2)+1):
         mean_of_diag.append(np.mean(np.diagonal(MI,offset=i)))
         max_of_diag.append(np.max(np.diagonal(MI,offset=i)))
     #plot mean of each diagonal
