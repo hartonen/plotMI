@@ -94,7 +94,7 @@ def plotMI():
             M += 1
             for n in range(m+args.k,J-args.k+1):
                 if args.nproc>1: res.append(pool.apply_async(getMI_mn,args=(seqs,m,n,I,J,P,args.k,p,alphabet,randomized_pairs)))
-                else: res.append(getMI_mn(seqs,m,n,I,J,P,args.k,p,alphabet))
+                else: res.append(getMI_mn(seqs,m,n,I,J,P,args.k,p,alphabet,randomized_pairs))
         if args.nproc>1:
             res = [r.get() for r in res]    
 
