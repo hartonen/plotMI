@@ -3,6 +3,7 @@
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm, Normalize
 import seaborn as sns
 
 from time import time
@@ -34,6 +35,7 @@ def plotMI():
     parser.add_argument("--v",help="Verbosity level, 0=none, 1=print info on screen (default=1).",type=int,choices=[0,1],default=1)
     parser.add_argument("--p",help="Multiplier for pseudocount mass added to k-mer count. Total pseudocount mass added is p*(number of sequences) (default=5).",type=float,default=5)
     parser.add_argument("--alphabet",help="A string containing each individual letter in the alphabet used (default=ACGT). NOTE! This is case-sensitive.",type=str,default="ACGT")
+    parser.add_argument("--colorscale",help="If set to log, colormap is scaled logarithmically (default=lin, meaning linear scaling).",type=str,choices=['lin','log'],default='lin')
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
     parser.add_argument("--save_distributions",help="If yes, save the positional and pairwise k-mer distributions and the MI contributions from each k-mer and position pair into a separate file (default=no). Note that this is a large file, possibly many GBs.",type=str,choices=['yes','no'],default='no')
@@ -262,8 +264,12 @@ def plotMI():
         np.savetxt(args.outdir+"JS_inv.txt.gz",MI,delimiter='\t')
         cbar_title = 'inverted Jensen-Shannon divergence'
     
-    if args.minmi!=None: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi)
-    else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title})
+    if args.minmi!=None:
+        if args.colorscale=='log': sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi,norm=LogNorm())
+        else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi)
+    else:
+        if args.colorscale=='log': sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},norm=LogNorm())
+        else: sns_plot = sns.heatmap(MI,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title})
     
     xticks = []
     xticklabels = []

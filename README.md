@@ -33,8 +33,8 @@ plotMI.py -h
 usage: plotMI.py [-h] [--outdir OUTDIR] [--seqs SEQS]
                  [--distance {MI,JS,JS_inv,BC,BC_inv,HE}] [--nproc NPROC]
                  [--figtype {pdf,png}] [--k K] [--v {0,1}] [--p P]
-                 [--alphabet ALPHABET] [--minmi MINMI] [--step STEP]
-                 [--save_distributions {yes,no}]
+                 [--alphabet ALPHABET] [--colorscale {lin,log}]
+                 [--minmi MINMI] [--step STEP] [--save_distributions {yes,no}]
                  [--randomized_pairs RANDOMIZED_PAIRS]
 
 optional arguments:
@@ -63,6 +63,9 @@ optional arguments:
   --alphabet ALPHABET   A string containing each individual letter in the
                         alphabet used (default=ACGT). NOTE! This is case-
                         sensitive.
+  --colorscale {lin,log}
+                        If set to log, colormap is scaled logarithmically
+                        (default=lin, meaning linear scaling).
   --minmi MINMI         Set minimum value for colormap, helpful if you want to
                         be sure that the minimum value is 0 (default=minimum
                         value in MI matrix).
