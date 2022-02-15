@@ -20,6 +20,7 @@ def plotDiagonals():
     parser.add_argument("--MI",help="Full path to the tab-separated txt-file containing the MI-matrix.",type=str)
     parser.add_argument("--k",help="Value of k used to create the MI-matrix.",type=int,default=3)
     parser.add_argument("--figtype",help="Figure type, pdf (=default) or png.",type=str,choices=['pdf','png'],default='pdf')
+    parser.add_argument("--xlim",help="Consider distances up to xlim (default=length of input sequences).",type=int,default=None)
     
     args = parser.parse_args()
 
@@ -30,7 +31,12 @@ def plotDiagonals():
     mean_of_diag = []
     #compute max of each diagonal
     max_of_diag = []
-    for i in range(int(MI.shape[0])):#/2)+1):
+    #set x-axis limit
+    if args.xlim==None: xlim = int(MI.shape[0])
+    elif args.xlim>int(MI.shape[0]): xlim = int(MI.shape[0])
+    else: xlim = args.xlim
+    
+    for i in range(xlim):
         mean_of_diag.append(np.mean(np.diagonal(MI,offset=i)))
         max_of_diag.append(np.max(np.diagonal(MI,offset=i)))
     #plot mean of each diagonal
