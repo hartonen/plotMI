@@ -152,33 +152,19 @@ def getMI_mn(seqs,m,n,I,J,P_j,k,p,alphabet,randomized_positions):
     
     if p>0:
         #adding pseudocount p/n_a^2k to each k-mer count
-        #kmers = [''.join(c) for c in product(alphabet,repeat=2*k)]
-        #for kmer in product(alphabet,repeat=2*k): P_mn[''.join(kmer)] = p/pow(n_a,2*k)
-        #P_m = {}
-        #P_n = {}
-        CAA_count = 0
+        
         for i in range(0,I):
             kmer1 = seqs[i][m:m+k]
             kmer2 = seqs[i][n:n+k]
-            if kmer2=='CAA': CAA_count += 1
             kmer = kmer1+kmer2
             if P_mn[kmer]<1: P_mn[kmer] += (1+pseudoc) #adding the pseudocount when seeing 2k-mer for the first time
             else: P_mn[kmer] += 1.0
-        
-        #normalize counts
-        #for kmer in P_mn: P_mn[kmer] /= norm
-        
-        
     else:
         for i in range(0,I):
             kmer1 = seqs[i][m:m+k]
             kmer2 = seqs[i][n:n+k]
             if kmer1+kmer2 not in P_mn: P_mn[kmer1+kmer2] = 1.0
             else: P_mn[kmer1+kmer2] += 1.0
-              
-        #normalize counts
-        #for kmer in P_mn:
-        #    P_mn[kmer] /= float(I)
     
     #calculate mutual information
     #MI(m,n) = \sum_{kmer_m \in K} \sum_{kmer_n in K} P_mn(kmer_m,kmer_n)*log_2(P_mn(kmer_m,kmer_n)/(P_m(kmer_m)*P_n(kmer_n)))
