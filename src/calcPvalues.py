@@ -6,14 +6,13 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 import seaborn as sns
 
-from time import time
 import argparse
 import csv
 import numpy as np
 import gzip
 import sys
 
-import multiprocessing as mp
+from statsmodels.stats.multitest import multipletests
 
 def calcPvalues():
 
@@ -34,6 +33,7 @@ def calcPvalues():
     parser.add_argument("--colorscale",help="If set to log, colormap is scaled logarithmically (default=lin, meaning linear scaling).",type=str,choices=['lin','log'],default='lin')
     parser.add_argument("--minmi",help="Set minimum value for colormap, helpful if you want to be sure that the minimum value is 0 (default=minimum value in MI matrix).",default=None,type=float)
     parser.add_argument("--step",help="Step size for axis ticks in MI-plot (default=20).",type=int,default=20)
+    parser.add_argument("--method",help="Method for adjusting p-values for multiple hypothesis testing. Should be one accepted by statsmodels.stats.multitest (see: https://www.statsmodels.org/dev/generated/statsmodels.stats.multitest.multipletests.html). Default is fdr_bh for Benjamini-Hochberg procedure.",type=str,default='fdr_bh')
 
     args = parser.parse_args()
 
@@ -61,11 +61,17 @@ def calcPvalues():
     np.savetxt(args.outdir+"p-vals.txt.gz",Ps,delimiter='\t')
     plotMatrix(Ps,'empirical p-value',args.outdir+"p-vals."+args.figtype,args,colorscale='log')
 
+    #adjust for multiple hypothesis testing using any method available in statsmodels
+    iu = np.triu_indices(Ps.shape[0])
+    multi = multipletests(Ps[iu],alpha=args.p,method=args.method)[1]
+    Ps_adj = np.zeros(shape=Ps.shape)
+    Ps_adj[iu] = multi
     #plot significant vs non-significant pairs
+    Ps_adj = Ps_adj+Ps_adj.T-np.diag(np.diag(Ps_adj)) #copy upper triangle values to lower triangle
     significant = np.zeros(shape=Ps.shape)
-    significant[np.where(Ps<=args.p)] = 1.0
+    significant[np.where(Ps_adj<=args.p)] = 1.0
     np.savetxt(args.outdir+"significant_vs_non_significant.txt.gz",significant,delimiter='\t')
-    plotMatrix(significant,'significant interactions (p=0.05)',args.outdir+"significant_vs_non_significant."+args.figtype,args)
+    plotMatrix(significant,'significant MI signal in black (p_adj<0.05)',args.outdir+"significant_vs_non_significant."+args.figtype,args,cmap='Greys',binaryticks=True)
 
     
     #plot MI_model-np.mean(MI_random)
@@ -73,21 +79,20 @@ def calcPvalues():
     np.savetxt(args.outdir+"MI_model-MI_mean_from_random_samples.txt.gz",MI_model_minus,delimiter='\t')
     plotMatrix(MI_model_minus,'MI_model-<MI_random>',args.outdir+"MI_model-MI_mean_from_random_samples."+args.figtype,args)
 
-
 #end
 
-def plotMatrix(matrix,cbar_title,outname,args,colorscale='linear'):
+def plotMatrix(matrix,cbar_title,outname,args,cmap='viridis',colorscale='linear',colorbar=True,binaryticks=False):
     #matrix = matrix to be plotted
     #cbar_title = colorbar title
     #outname = full path to output file
     #args = command line arguments
     
     if args.minmi!=None:
-        if colorscale=='log': sns_plot = sns.heatmap(matrix,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi,norm=LogNorm())
-        else: sns_plot = sns.heatmap(matrix,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},vmin=args.minmi)
+        if colorscale=='log': sns_plot = sns.heatmap(matrix,cmap=cmap,cbar=colorbar,cbar_kws={'label': cbar_title},vmin=args.minmi,norm=LogNorm())
+        else: sns_plot = sns.heatmap(matrix,cmap=cmap,cbar=colorbar,cbar_kws={'label': cbar_title},vmin=args.minmi)
     else:
-        if colorscale=='log': sns_plot = sns.heatmap(matrix,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title},norm=LogNorm())
-        else: sns_plot = sns.heatmap(matrix,cmap='viridis',cbar=True,cbar_kws={'label': cbar_title})
+        if colorscale=='log': sns_plot = sns.heatmap(matrix,cmap=cmap,cbar=colorbar,cbar_kws={'label': cbar_title},norm=LogNorm())
+        else: sns_plot = sns.heatmap(matrix,cmap=cmap,cbar=colorbar,cbar_kws={'label': cbar_title})
 
     xticks = []
     xticklabels = []
@@ -102,6 +107,12 @@ def plotMatrix(matrix,cbar_title,outname,args,colorscale='linear'):
     yticks[-1] = matrix.shape[0]-1+args.k; yticklabels[-1] = int(matrix.shape[0]-1+args.k)
     sns_plot.set(xticks=xticks,xticklabels=xticklabels,yticks=yticks,yticklabels=yticklabels)
     sns.despine(offset=10, trim=True)
+
+    if binaryticks:
+        cbar = sns_plot.collections[0].colorbar
+        cbar.set_ticks([0,1])
+        cbar.set_ticklabels(['p>='+str(args.p), 'p<'+str(args.p)])
+    
     fig = sns_plot.get_figure()
     fig.savefig(outname,dpi=300)
     plt.clf()
