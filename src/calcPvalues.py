@@ -59,7 +59,7 @@ def calcPvalues():
 
     #plot the p-values
     np.savetxt(args.outdir+"p-vals.txt.gz",Ps,delimiter='\t')
-    plotMatrix(Ps,'empirical p-value',args.outdir+"p-vals."+args.figtype,args,colorscale='log')
+    plotMatrix(Ps,'empirical p-value',args.outdir+"p-vals."+args.figtype,args,cmap='viridis_r')
 
     #adjust for multiple hypothesis testing using any method available in statsmodels
     iu = np.triu_indices(Ps.shape[0])
