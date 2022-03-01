@@ -118,7 +118,8 @@ def plotMI():
                     MI[inds[1]-args.k,inds[0]] = mi
                     MI[inds[0],inds[1]-args.k] = mi
                     #saving all individual MI contributions to file
-                    for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+                    for kmer in res[j][2]:
+                        w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],res[j][3][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
         else:
             MI = -1*np.ones(shape=(M,M))
             for j in range(0,len(res)):
@@ -194,8 +195,9 @@ def plotMI():
                     mi = res[j][1]
                     MI[inds[1]-args.k,inds[0]] = mi
                     MI[inds[0],inds[1]-args.k] = mi
-                    #saving all individual MI contributions to file
-                    for kmer in res[j][2]: w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
+                    #saving all individual BC contributions to file
+                    for kmer in res[j][2]:
+                        w.writerow([inds[0],inds[1],kmer[:args.k],kmer[args.k:],res[j][2][kmer],P[inds[0]][kmer[:args.k]],P[inds[1]][kmer[args.k:]]])
         else:
             MI = -1*np.ones(shape=(M,M))
             for j in range(0,len(res)):

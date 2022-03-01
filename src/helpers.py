@@ -91,8 +91,9 @@ def getHE_mn(seqs,m,n,I,J,P_j,k,p,alphabet):
     HE_mn = {} #dictionary containing all individual contributions to HE
     for kmer_m in P_j[m]:
         if kmer_m not in P_j[n]: continue
-        HE_mn[kmer_m] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])
-        HE += HE_mn[kmer_m]
+        kmer = kmer_m+kmer_m
+        HE_mn[kmer] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])
+        HE += HE_mn[kmer]
 
     HE = sqrt(1.0-HE)    
     return [(m,n),HE,HE_mn,None]
@@ -118,8 +119,9 @@ def getBC_mn(seqs,m,n,I,J,P_j,k,p,alphabet,inv=False):
     BC_mn = {} #dictionary containing all individual contributions to BC
     for kmer_m in P_j[m]:
         if kmer_m not in P_j[n]: continue
-        BC_mn[kmer_m] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])
-        BC += BC_mn[kmer_m]
+        kmer = kmer_m+kmer_m
+        BC_mn[kmer] = sqrt(P_j[m][kmer_m]*P_j[n][kmer_m])
+        BC += BC_mn[kmer]
 
     if not inv: BC = -1*log(BC)
     else: BC = -1*log(1.0-BC)
